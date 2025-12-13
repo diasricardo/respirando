@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import Banner from './Banner';
 
 export default function FeedbackScreen({ navigation }) {
   const handleFeedback = (isCalm) => {
     if (isCalm) {
-      navigation.navigate('AdOffer');
+      navigation.navigate('AdOfferScreen');
     } else {
       navigation.navigate('Home');
     }
@@ -51,9 +52,8 @@ export default function FeedbackScreen({ navigation }) {
 
         {/* Espaço de Publicidade */}
         <View style={styles.adContainer}>
-          <Text style={styles.adLabel}>Publicidade</Text>
           <View style={styles.adContent}>
-            <Text style={styles.adText}>Durma melhor com técnicas de relaxamento</Text>
+            <Banner />
           </View>
         </View>
       </LinearGradient>

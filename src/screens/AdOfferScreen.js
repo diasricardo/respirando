@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import Banner from './Banner';
 
 export default function AdOfferScreen({ navigation }) {
   return (
@@ -23,7 +24,7 @@ export default function AdOfferScreen({ navigation }) {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.buttonYes}
-              onPress={() => navigation.navigate('Ad')}
+              onPress={() => navigation.navigate('AdScreen')}
               activeOpacity={0.8}
             >
               <Text style={styles.buttonYesText}>Sim, assistir</Text>
@@ -45,9 +46,8 @@ export default function AdOfferScreen({ navigation }) {
 
         {/* Espaço de Publicidade */}
         <View style={styles.adContainer}>
-          <Text style={styles.adLabel}>Publicidade</Text>
           <View style={styles.adContent}>
-            <Text style={styles.adText}>Mantenha sua mente saudável - Saiba mais</Text>
+            <Banner />
           </View>
         </View>
       </LinearGradient>

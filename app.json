@@ -2,6 +2,7 @@
   "expo": {
     "name": "respirando",
     "slug": "respirando",
+    "owner": "diasricardo1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,17 +14,36 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.diasricardo1.respirando",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.diasricardo1.respirando"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-9858839660425512~4872939686",
+          "iosAppId": "ca-app-pub-9858839660425512~3082357622"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "c181160d-6473-4444-8230-4ec3092ead0e"
+      }
     }
   }
 }
