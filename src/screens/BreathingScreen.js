@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import AudioManager from '../utils/AudioManager';
+import Banner from './Banner';
 
 export default function BreathingScreen({ navigation, route }) {
-  // Usar useMemo para evitar recriação do config
   const config = useMemo(() => {
     return route.params || { inspire: 4, hold: 7, expire: 8 };
   }, [route.params]);
@@ -13,13 +14,55 @@ export default function BreathingScreen({ navigation, route }) {
   const [timer, setTimer] = useState(0);
   const [cycle, setCycle] = useState(0);
   const scale = useRef(new Animated.Value(0.4)).current;
-  const navigationRef = useRef(false); // Para evitar múltiplas navegações
+  const navigationRef = useRef(false);
+  const audioLoaded = useRef(false);
 
-  // Função para navegar com segurança
+  // Inicializar e carregar sons
+  useEffect(() => {
+    let mounted = true;
+
+    const setupAudio = async () => {
+      try {
+        await AudioManager.initialize();
+
+        // Carregar apenas inspire e expire
+        await Promise.all([
+          AudioManager.loadSound('inspire', require('../assets/sounds/inspire.mp3')),
+          AudioManager.loadSound('expire', require('../assets/sounds/expire.mp3')),
+        ]);
+
+        if (mounted) {
+          audioLoaded.current = true;
+          console.log('✅ Sons carregados (inspire e expire)');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao configurar áudio:', error);
+      }
+    };
+
+    setupAudio();
+
+    return () => {
+      mounted = false;
+      AudioManager.unloadAll();
+    };
+  }, []);
+
+  // Reproduzir sons quando mudar de fase
+  useEffect(() => {
+    if (!audioLoaded.current) return;
+
+    if (phase === 'inspire') {
+      AudioManager.playSound('inspire');
+    } else if (phase === 'expire') {
+      AudioManager.playSound('expire');
+    }
+  }, [phase]);
+
   const navigateToFeedback = useCallback(() => {
     if (!navigationRef.current) {
       navigationRef.current = true;
-      // Usar setTimeout para garantir que não está no render
+      AudioManager.unloadAll();
       setTimeout(() => {
         navigation.replace('Feedback');
       }, 0);
@@ -116,15 +159,12 @@ export default function BreathingScreen({ navigation, route }) {
   // ========== FUNÇÕES DE DISPLAY ==========
   const getDisplayTimer = () => {
     if (phase === 'inspire') {
-      // INSPIRE: conta progressiva (1, 2, 3, 4...)
       const elapsed = config.inspire - timer + 1;
       return elapsed.toString().padStart(2, '0');
     } else if (phase === 'expire') {
-      // EXPIRE: conta progressiva (1, 2, 3, 4, 5, 6, 7, 8...)
       const elapsed = config.expire - timer + 1;
       return elapsed.toString().padStart(2, '0');
     } else {
-      // HOLD e READY: conta regressiva (7, 6, 5... ou 3, 2, 1)
       return timer.toString().padStart(2, '0');
     }
   };
@@ -176,10 +216,7 @@ export default function BreathingScreen({ navigation, route }) {
         </View>
 
         <View style={styles.adContainer}>
-          <Text style={styles.adLabel}>Publicidade</Text>
-          <View style={styles.adContent}>
-            <Text style={styles.adText}>Obtenha métodos avançados - Descubra mais</Text>
-          </View>
+          <Banner />
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -284,3 +321,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

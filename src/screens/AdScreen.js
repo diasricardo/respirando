@@ -1,107 +1,180 @@
+// AdScreen.js - COM PROTEÇÃO CONTRA DUPLICAÇÃO
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { 
+  View, Text, StyleSheet, ActivityIndicator, 
+  TouchableOpacity, AppState 
+} from 'react-native';
 import BannerGrande from './BannerGrande';
 
 export default function AdScreen({ navigation }) {
-  const [adStatus, setAdStatus] = useState('loading'); // loading, showing, completed
-  const hasNavigated = useRef(false);
+  const [status, setStatus] = useState('loading');
+  const hasLeft = useRef(false);
+  const adStartTime = useRef(0);
+  const appState = useRef(AppState.currentState);
+  const isProcessingClose = useRef(false);
 
-  const handleAdLoaded = () => {
-    console.log('Anúncio carregado e sendo exibido');
-    setAdStatus('showing');
+  // 1. Função SEGURA para voltar à Home
+  const goHome = () => {
+    if (hasLeft.current) {
+      console.log('⚠️ [AdScreen] Ignorando: já saiu');
+      return;
+    }
+    
+    hasLeft.current = true;
+    console.log('🏠 [AdScreen] Indo para Home...');
+    
+    // Usa replace para não poder voltar
+    setTimeout(() => {
+      navigation.replace('Home');
+    }, 300);
   };
 
-  const handleAdEarnedReward = () => {
-    console.log('Usuário assistiu o anúncio completo e ganhou recompensa!');
-    setAdStatus('completed');
-    // Navega imediatamente após ganhar recompensa
-    if (!hasNavigated.current) {
-      hasNavigated.current = true;
-      setTimeout(() => navigation.navigate('Home'), 500);
-    }
+  // 2. Detecta quando app volta (usuário fechou anúncio) - APENAS UMA VEZ
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState) => {
+      console.log(`📱 [AdScreen] AppState: ${appState.current} → ${nextAppState}`);
+      
+      // Se estava "active" e voltou "active", pode ter fechado anúncio
+      if (appState.current === 'active' && nextAppState === 'active') {
+        const timeShowing = Date.now() - adStartTime.current;
+        console.log(`⏱️ [AdScreen] Tempo de exibição: ${timeShowing}ms`);
+        
+        // Só processa se: está mostrando, passou mais de 1s, não está processando já
+        if (status === 'showing' && timeShowing > 1000 && !isProcessingClose.current) {
+          isProcessingClose.current = true;
+          console.log('👀 [AdScreen] Detectado fechamento (AppState)');
+          handleManualClose();
+        }
+      }
+      
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [status]);
+
+  // 3. Callbacks do BannerGrande
+  const handleAdLoaded = () => {
+    console.log('🎬 [AdScreen] Anúncio carregado');
+    setStatus('showing');
+    adStartTime.current = Date.now();
   };
 
   const handleAdClosed = () => {
-    console.log('Anúncio foi fechado');
-    // Só navega se ainda não navegou (caso o usuário feche antes de completar)
-    if (!hasNavigated.current) {
-      hasNavigated.current = true;
-      setTimeout(() => navigation.navigate('Home'), 300);
+    console.log('✅ [AdScreen] BannerGrande reportou fechamento');
+    if (isProcessingClose.current) {
+      console.log('⚠️ [AdScreen] Já estava processando fechamento');
+      return;
     }
+    isProcessingClose.current = true;
+    setStatus('completed');
+    setTimeout(goHome, 500);
   };
 
   const handleAdError = (error) => {
-    console.log('Erro ao carregar anúncio:', error);
-    // Se der erro, volta para home
-    if (!hasNavigated.current) {
-      hasNavigated.current = true;
-      setTimeout(() => navigation.navigate('Home'), 1000);
-    }
+    console.log('⚠️ [AdScreen] Erro:', error?.message);
+    setStatus('error');
+    setTimeout(goHome, 800);
   };
+
+  // 4. Fechamento manual (quando detectamos via AppState)
+  const handleManualClose = () => {
+    console.log('🔄 [AdScreen] Fechamento manual detectado');
+    setStatus('completed');
+    setTimeout(goHome, 500);
+  };
+
+  // 5. Timeout de segurança
+  useEffect(() => {
+    const safetyTimeout = setTimeout(() => {
+      console.log('⏰ [AdScreen] Timeout de segurança (30s)');
+      if (!hasLeft.current) {
+        setStatus('error');
+        goHome();
+      }
+    }, 30000);
+
+    return () => clearTimeout(safetyTimeout);
+  }, []);
 
   return (
     <View style={styles.container}>
       <BannerGrande
         onAdLoaded={handleAdLoaded}
-        onAdEarnedReward={handleAdEarnedReward}
         onAdClosed={handleAdClosed}
         onAdError={handleAdError}
       />
 
-      {/* Tela de loading/aguardando */}
       <View style={styles.content}>
-        {adStatus === 'loading' && (
+        {status === 'loading' && (
           <>
             <ActivityIndicator size="large" color="#26C6DA" />
-            <Text style={styles.statusText}>Carregando anúncio...</Text>
+            <Text style={styles.text}>Carregando...</Text>
           </>
         )}
-
-        {adStatus === 'showing' && (
-          <Text style={styles.statusText}>Assistindo anúncio...</Text>
-        )}
-
-        {adStatus === 'completed' && (
+        
+        {status === 'showing' && (
           <>
-            <Text style={styles.completedText}>✓ Completo!</Text>
-            <Text style={styles.statusText}>Obrigado por assistir!</Text>
+            <ActivityIndicator size="small" color="#26C6DA" />
+            <Text style={styles.text}>Anúncio em exibição</Text>
+            <Text style={styles.smallText}>Aguarde o término</Text>
+            
+            {/* BOTÃO DE EMERGÊNCIA - DESABILITADO após primeiro clique */}
+            <TouchableOpacity 
+              style={[styles.button, isProcessingClose.current && styles.buttonDisabled]}
+              onPress={() => {
+                if (!isProcessingClose.current) {
+                  console.log('🆘 [AdScreen] Botão de emergência pressionado');
+                  handleManualClose();
+                }
+              }}
+              disabled={isProcessingClose.current}
+            >
+              <Text style={styles.buttonText}>
+                {isProcessingClose.current ? 'Processando...' : 'Continuar'}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
-
-        <Text style={styles.thankYou}>
-          Obrigado por apoiar o Respirando!
-        </Text>
+        
+        {status === 'completed' && (
+          <>
+            <Text style={styles.bigText}>✓ Concluído!</Text>
+            <Text style={styles.text}>Redirecionando...</Text>
+          </>
+        )}
+        
+        {status === 'error' && (
+          <>
+            <Text style={styles.errorText}>⚠️</Text>
+            <Text style={styles.text}>Erro técnico</Text>
+            <Text style={styles.smallText}>Voltando...</Text>
+          </>
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#212121',
+  container: { flex: 1, backgroundColor: '#212121' },
+  content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  text: { fontSize: 18, color: 'white', marginTop: 20, textAlign: 'center' },
+  smallText: { fontSize: 14, color: '#aaa', marginTop: 10, textAlign: 'center' },
+  bigText: { fontSize: 32, color: '#26C6DA', fontWeight: 'bold', marginBottom: 10 },
+  errorText: { fontSize: 48, color: '#FF6B6B', marginBottom: 10 },
+  button: { 
+    marginTop: 30, 
+    backgroundColor: '#26C6DA', 
+    paddingHorizontal: 30, 
+    paddingVertical: 12, 
+    borderRadius: 25,
+    minWidth: 150,
   },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+  buttonDisabled: { 
+    backgroundColor: '#666',
+    opacity: 0.7,
   },
-  statusText: {
-    fontSize: 18,
-    color: '#FFFFFF',
-    marginTop: 20,
-  },
-  completedText: {
-    fontSize: 32,
-    color: '#26C6DA',
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  thankYou: {
-    fontSize: 14,
-    color: '#9E9E9E',
-    marginTop: 32,
-    textAlign: 'center',
-  },
+  buttonText: { color: 'white', fontSize: 16, fontWeight: '600', textAlign: 'center' },
 });

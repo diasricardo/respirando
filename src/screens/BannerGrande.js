@@ -1,100 +1,95 @@
-// components/BannerGrande.js
-import { useEffect, useState } from 'react';
-import { Platform, View, Text, StyleSheet } from 'react-native';
+// components/BannerGrande.js - VERSÃO FINAL CORRIGIDA
+import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
+import { InterstitialAd, TestIds } from 'react-native-google-mobile-ads';
 
-// Imports comentados para desenvolvimento
-import { RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
-// const RewardedAd = {
-//   createForAdRequest: () => ({
-//     addAdEventListener: () => () => {},
-//     load: () => {},
-//     show: () => {},
-//   })
-// };
-// const RewardedAdEventType = {
-//   LOADED: 'loaded',
-//   EARNED_REWARD: 'earned_reward',
-//   CLOSED: 'closed',
-//   ERROR: 'error',
-// };
-// const TestIds = { REWARDED: '' };
-
-const adUnitId = __DEV__
-  ? TestIds.REWARDED
+// Use APENAS test ID ou seu ID real
+const AD_UNIT_ID = __DEV__ 
+  ? TestIds.INTERSTITIAL
   : Platform.OS === 'android'
-    ? 'ca-app-pub-9858839660425512/5868303068' // Seu ID Android
-    : 'ca-app-pub-9858839660425512/5241423581'; // Seu ID iOS
+    ? 'ca-app-pub-9858839660425512/5868303068'
+    : 'ca-app-pub-9858839660425512/5241423581';
 
-export default function BannerGrande({ 
-  onAdLoaded, 
-  onAdEarnedReward, 
-  onAdClosed, 
-  onAdError 
-}) {
-  const [rewarded, setRewarded] = useState(null);
-  const [loaded, setLoaded] = useState(false);
+export default function BannerGrande({ onAdLoaded, onAdClosed, onAdError }) {
+  const adRef = useRef(null);
+  const hasLoaded = useRef(false);
+  const hasShown = useRef(false);
+  const hasClosed = useRef(false);
 
   useEffect(() => {
-    const rewardedAd = RewardedAd.createForAdRequest(adUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-
-    // Quando o anúncio carrega
-    const unsubscribeLoaded = rewardedAd.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        console.log('✅ Anúncio carregado');
-        setLoaded(true);
-        if (onAdLoaded) onAdLoaded();
-      }
-    );
-
-    // Quando o usuário GANHA A RECOMPENSA (assistiu até o final)
-    const unsubscribeEarned = rewardedAd.addAdEventListener(
-      RewardedAdEventType.EARNED_REWARD,
-      (reward) => {
-        console.log('🎁 Recompensa ganha!', reward);
-        if (onAdEarnedReward) onAdEarnedReward(reward);
-      }
-    );
-
-    // Quando o anúncio é fechado (pode ser antes ou depois da recompensa)
-    const unsubscribeClosed = rewardedAd.addAdEventListener(
-      RewardedAdEventType.CLOSED,
-      () => {
-        console.log('❌ Anúncio fechado');
-        if (onAdClosed) onAdClosed();
-      }
-    );
-
-    // Se der erro ao carregar
-    const unsubscribeError = rewardedAd.addAdEventListener(
-      RewardedAdEventType.ERROR,
-      (error) => {
-        console.log('⚠️ Erro no anúncio:', error);
-        if (onAdError) onAdError(error);
-      }
-    );
-
-    // Carrega o anúncio
-    rewardedAd.load();
-    setRewarded(rewardedAd);
-
-    return () => {
-      unsubscribeLoaded();
-      unsubscribeEarned();
-      unsubscribeClosed();
-      unsubscribeError();
-    };
-  }, [onAdLoaded, onAdEarnedReward, onAdClosed, onAdError]);
-
-  // Mostra o anúncio assim que carregar
-  useEffect(() => {
-    if (loaded && rewarded) {
-      console.log('📺 Exibindo anúncio...');
-      rewarded.show();
+    console.log('🚀 [BannerGrande] Inicializando...');
+    
+    try {
+      // 1. Cria o anúncio
+      const ad = InterstitialAd.createForAdRequest(AD_UNIT_ID);
+      adRef.current = ad;
+      
+      // 2. Usa APENAS UM método de listener para evitar duplicação
+      const unsubscribe = ad.addAdEventsListener((event) => {
+        console.log(`📢 [BannerGrande] Evento: ${event.type}`);
+        
+        // LOADED - Só processa uma vez
+        if (event.type === 'loaded' && !hasLoaded.current) {
+          console.log('✅ [BannerGrande] Carregado (primeira vez)');
+          hasLoaded.current = true;
+          onAdLoaded?.();
+          
+          // Mostra o anúncio APENAS se ainda não mostrou
+          if (!hasShown.current) {
+            hasShown.current = true;
+            console.log('🔄 [BannerGrande] Mostrando anúncio...');
+            
+            // Pequeno delay para UI
+            setTimeout(() => {
+              ad.show()
+                .then(() => {
+                  console.log('✅ [BannerGrande] Anúncio em exibição');
+                })
+                .catch(err => {
+                  console.log('❌ [BannerGrande] Erro ao mostrar:', err.message);
+                  onAdError?.(err);
+                });
+            }, 300);
+          }
+        }
+        
+        // CLOSED - Só processa uma vez
+        if (event.type === 'closed' && !hasClosed.current) {
+          console.log('🔒 [BannerGrande] Fechado (primeira vez)');
+          hasClosed.current = true;
+          onAdClosed?.();
+        }
+        
+        // ERROR
+        if (event.type === 'error') {
+          console.log('⚠️ [BannerGrande] Erro:', event.payload?.message);
+          onAdError?.(event.payload);
+        }
+      });
+      
+      // 3. Carrega o anúncio
+      console.log('📦 [BannerGrande] Carregando anúncio...');
+      ad.load();
+      
+      // 4. Timeout de segurança
+      const loadTimeout = setTimeout(() => {
+        if (!hasLoaded.current) {
+          console.log('⏰ [BannerGrande] Timeout de carregamento');
+          onAdError?.(new Error('Anúncio não carregou em 10 segundos'));
+        }
+      }, 10000);
+      
+      return () => {
+        console.log('🧹 [BannerGrande] Cleanup');
+        clearTimeout(loadTimeout);
+        unsubscribe?.();
+      };
+      
+    } catch (error) {
+      console.log('💥 [BannerGrande] Erro fatal:', error.message);
+      onAdError?.(error);
     }
-  }, [loaded, rewarded]);
+  }, [onAdLoaded, onAdClosed, onAdError]);
 
-  return null; // Componente invisível - o anúncio será exibido em tela cheia
+  return null;
 }

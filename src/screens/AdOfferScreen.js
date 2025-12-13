@@ -18,7 +18,7 @@ export default function AdOfferScreen({ navigation }) {
           <Text style={styles.heading}>Que ótimo!</Text>
 
           <Text style={styles.message}>
-            Gostaria de ajudar no desenvolvimento do projeto assistindo a uma publicidade de 30 segundos?
+            Gostaria de ajudar no desenvolvimento do projeto assistindo a uma publicidade de 20 segundos?
           </Text>
 
           <View style={styles.buttonContainer}>

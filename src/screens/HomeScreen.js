@@ -3,73 +3,139 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Banner from './Banner';
 
-// Ícone de Informação (Componente Simples)
+// Ícone de Informação do App
 const InfoIcon = ({ onPress }) => (
     <TouchableOpacity style={styles.infoIcon} onPress={onPress}>
         <Text style={styles.infoIconText}>i</Text>
-        {/* Se estiver usando Ionicons: <Ionicons name="information-circle-outline" size={30} color="#00BCD4" /> */}
     </TouchableOpacity>
 );
 
-// --- Componente Principal ---
 export default function HomeScreen({ navigation }) {
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedTech, setSelectedTech] = useState(null);
+    const developerName = "rick0Dev";
+    const appVersion = "1.0.0";
+
+    const techniques = [
+        {
+            id: 1,
+            title: "Técnica 3-3-3",
+            inspire: 3,
+            hold: 3,
+            expire: 3,
+            description: "Ideal para acalmar rapidamente, reduzindo a frequência cardíaca em momentos de ansiedade."
+        },
+        {
+            id: 2,
+            title: "Técnica 4-7-8",
+            inspire: 4,
+            hold: 7,
+            expire: 8,
+            description: "Conhecida como 'tranquilizante natural', promove relaxamento profundo e ajuda na indução do sono."
+        }
+    ];
 
     const startBreathing = (config) => {
         navigation.navigate('Breathing', config);
     };
 
-    const developerName = "rick0Dev";
-    const appVersion = "1.0.0";
+    const showTechInfo = (tech) => {
+        setSelectedTech(tech);
+        setIsModalVisible(true);
+    };
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            
-            {/* NOVO: Header Container para posicionar o ícone */}
+            {/* Header Limpo - Ícone à direita apenas */}
             <View style={styles.header}>
-                <InfoIcon onPress={() => setIsModalVisible(true)} />
+                <View style={styles.headerTextContainer}>
+                    <Text style={styles.headerTitle}>Respirando</Text>
+                    <Text style={styles.headerSubtitle}>Controle emocional através da respiração</Text>
+                </View>
+                <InfoIcon onPress={() => {
+                    setSelectedTech(null);
+                    setIsModalVisible(true);
+                }} />
             </View>
-            
+
+            {/* Conteúdo Compacto - NÃO centralizado verticalmente */}
             <View style={styles.content}>
-
-                {/* CÍRCULO COM LOGO FUNDO BRANCO */}
-                <View style={styles.circle}>
-                    <Image
-                        source={require('../assets/logo.png')}
-                        style={styles.logo}
-                        resizeMode="contain"
-                    />
+                {/* Logo - Mais para cima e menor */}
+                <View style={styles.logoContainer}>
+                    <View style={styles.circle}>
+                        <Image
+                            source={require('../assets/logo.png')}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
+                    </View>
+                    <Text style={styles.welcomeText}>
+                        Selecione uma técnica
+                    </Text>
                 </View>
 
-                <Text style={styles.subtitle}>Selecione a Técnica</Text>
-                
-                                {/* BOTÃO 3-3-3 */}
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => startBreathing({ inspire: 3, hold: 3, expire: 3 })}
-                >
-                    <Text style={styles.buttonText}>Técnica 3-3-3</Text>
-                    <Text style={styles.buttonSmall}>Inspire 3s • Segure 3s • Expire 3s</Text>
-                </TouchableOpacity>
+                {/* Técnicas - Mais compactas, sem centralização excessiva */}
+                <View style={styles.techniquesContainer}>
+                    {techniques.map((tech) => (
+                        <TouchableOpacity 
+                            key={tech.id} 
+                            style={styles.techCard}
+                            onPress={() => startBreathing({
+                                inspire: tech.inspire,
+                                hold: tech.hold,
+                                expire: tech.expire,
+                                title: tech.title
+                            })}
+                        >
+                            <View style={styles.techMain}>
+                                <Text style={styles.techTitle}>{tech.title}</Text>
+                                <View style={styles.techTiming}>
+                                    <View style={styles.timingItem}>
+                                        <Text style={styles.timingLabel}>Inspire</Text>
+                                        <Text style={styles.timingValue}>{tech.inspire}s</Text>
+                                    </View>
+                                    <View style={styles.separator} />
+                                    <View style={styles.timingItem}>
+                                        <Text style={styles.timingLabel}>Segure</Text>
+                                        <Text style={styles.timingValue}>{tech.hold}s</Text>
+                                    </View>
+                                    <View style={styles.separator} />
+                                    <View style={styles.timingItem}>
+                                        <Text style={styles.timingLabel}>Expire</Text>
+                                        <Text style={styles.timingValue}>{tech.expire}s</Text>
+                                    </View>
+                                </View>
+                            </View>
+                            
+                            <View style={styles.techActions}>
+                                <TouchableOpacity 
+                                    style={styles.techInfoBtn}
+                                    onPress={(e) => {
+                                        e.stopPropagation(); // Evita clique no card
+                                        showTechInfo(tech);
+                                    }}
+                                >
+                                    <Text style={styles.techInfoBtnText}>Info</Text>
+                                </TouchableOpacity>
+                                
+                                <View style={styles.startButton}>
+                                    <Text style={styles.startButtonText}>▶</Text>
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
-                {/* BOTÃO 4-7-8 */}
-                <TouchableOpacity
-                    style={[styles.button, { marginTop: 12 } ]}
-                    onPress={() => startBreathing({ inspire: 4, hold: 7, expire: 8 })}
-                >
-                    <Text style={styles.buttonText}>Técnica 4-7-8</Text>
-                    <Text style={styles.buttonSmall}>Inspire 4s • Segure 7s • Expire 8s</Text>
-                </TouchableOpacity>
+                {/* Espaço para o banner não sobrepor */}
+                <View style={styles.spacer} />
             </View>
 
-            {/* PUBLICIDADE */}
+            {/* Banner */}
             <View style={styles.adContainer}>
-                <View style={styles.adContent}>
-                    <Banner />
-                </View>
+                <Banner />
             </View>
 
-            {/* --- MODAL SOBRE O APLICATIVO --- */}
+            {/* Modal */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -78,25 +144,34 @@ export default function HomeScreen({ navigation }) {
             >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                        <Text style={styles.modalTitle}>Sobre o Respirando</Text>
-                        
-                        <Text style={styles.modalBody}>
-                            Este aplicativo é sua ferramenta para o controle emocional e alívio da ansiedade.
-
-Utilizando técnicas guiadas de respiração (como 4-7-8 e 3-3-3), você aprende a controlar o seu sistema nervoso, ativando a resposta de relaxamento e reduzindo imediatamente o estresse.
-
-Use-o como uma âncora rápida para quebrar ciclos de pensamentos acelerados ou para auxiliar na indução do sono.
+                        <Text style={styles.modalTitle}>
+                            {selectedTech ? selectedTech.title : "Sobre o Respirando"}
                         </Text>
                         
-                        <View style={styles.modalInfoGroup}>
-                            <Text style={styles.modalInfoLabel}>Desenvolvedor:</Text>
-                            <Text style={styles.modalInfoValue}>{developerName}</Text>
-                        </View>
+                        <Text style={styles.modalBody}>
+                            {selectedTech 
+                                ? selectedTech.description
+                                : `Este aplicativo é sua ferramenta para o controle emocional e alívio da ansiedade.
+
+Utilizando técnicas guiadas de respiração, você aprende a controlar o seu sistema nervoso, ativando a resposta de relaxamento e reduzindo imediatamente o estresse.
+
+Use-o como uma âncora rápida para quebrar ciclos de pensamentos acelerados ou para auxiliar na indução do sono.`
+                            }
+                        </Text>
                         
-                        <View style={styles.modalInfoGroup}>
-                            <Text style={styles.modalInfoLabel}>Versão:</Text>
-                            <Text style={styles.modalInfoValue}>{appVersion}</Text>
-                        </View>
+                        {!selectedTech && (
+                            <>
+                                <View style={styles.modalInfoGroup}>
+                                    <Text style={styles.modalInfoLabel}>Desenvolvedor:</Text>
+                                    <Text style={styles.modalInfoValue}>{developerName}</Text>
+                                </View>
+                                
+                                <View style={styles.modalInfoGroup}>
+                                    <Text style={styles.modalInfoLabel}>Versão:</Text>
+                                    <Text style={styles.modalInfoValue}>{appVersion}</Text>
+                                </View>
+                            </>
+                        )}
 
                         <TouchableOpacity
                             style={styles.modalButton}
@@ -116,23 +191,154 @@ const styles = StyleSheet.create({
         flex: 1, 
         backgroundColor: '#FFFFFF' 
     },
-
-    // --- NOVO ESTILO DO HEADER ---
+    
+    // Header - Mais clean
     header: {
-        width: '100%',
-        alignItems: 'flex-end',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 10,
-        // O padding vertical é gerenciado pelo SafeAreaView, mas reforçamos o horizontal
+        paddingTop: 15,
+        paddingBottom: 10,
+        backgroundColor: '#FFFFFF',
+    },
+    headerTextContainer: {
+        flex: 1,
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#00BCD4',
+    },
+    headerSubtitle: {
+        fontSize: 12,
+        color: '#4A6572',
+        marginTop: 2,
+        opacity: 0.8,
     },
     
-    // --- ÍCONE DE INFORMAÇÃO ---
+    // Conteúdo - NÃO centralizado, começa mais para cima
+    content: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 10, // Logo começa logo abaixo do header
+    },
+    
+    // Logo Container - Menor e mais para cima
+    logoContainer: {
+        alignItems: 'center',
+        marginBottom: 25,
+        marginTop: 5,
+    },
+    circle: {
+        width: 100, // MENOR
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#FFFFFF', 
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 3,
+        borderColor: '#48CFE0',
+        marginBottom: 10,
+    },
+    logo: {
+        width: 140, // MENOR
+        height: 140,
+    },
+    welcomeText: {
+        fontSize: 16,
+        color: '#4A6572',
+        textAlign: 'center',
+    },
+    
+    // Técnicas - Layout mais compacto
+    techniquesContainer: {
+        width: '100%',
+    },
+    techCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 14,
+        padding: 14,
+        marginBottom: 12, // MENOR espaçamento
+        borderWidth: 1,
+        borderColor: '#E0F7FA',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    techMain: {
+        flex: 1,
+        marginRight: 12,
+    },
+    techTitle: {
+        fontSize: 18, // MENOR
+        fontWeight: '600',
+        color: '#006064',
+        marginBottom: 8,
+    },
+    techTiming: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    timingItem: {
+        alignItems: 'center',
+        minWidth: 50,
+    },
+    timingLabel: {
+        fontSize: 11, // MENOR
+        color: '#4A6572',
+        marginBottom: 2,
+    },
+    timingValue: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#00BCD4',
+    },
+    separator: {
+        width: 1,
+        height: 20,
+        backgroundColor: '#E0E0E0',
+        marginHorizontal: 8,
+    },
+    
+    // Ações do Card - Mais compactas
+    techActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    techInfoBtn: {
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        backgroundColor: '#E0F7FA',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#48CFE0',
+        marginRight: 10,
+    },
+    techInfoBtnText: {
+        color: '#0097A7',
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    startButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#00BCD4',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    startButtonText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    
+    // Ícone Info
     infoIcon: {
-        // Removida a posição absoluta e zIndex alto, agora está dentro do 'header'
-        padding: 5,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#E0F7FA',
@@ -140,139 +346,62 @@ const styles = StyleSheet.create({
         borderColor: '#48CFE0',
     },
     infoIconText: {
-        fontSize: 22,
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#00BCD4',
     },
-
-    content: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-        // Ajustado para compensar a altura do header
-        marginTop: -30, 
+    
+    // Spacer para o banner
+    spacer: {
+        height: 20,
     },
-
-    // Estilos do Círculo (Mantidos)
-    circle: {
-        width: 170,
-        height: 170,
-        borderRadius: 90,
-        backgroundColor: '#FFFFFF', 
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 25,
-        borderWidth: 4,
-        borderColor: '#48CFE0',
-        shadowColor: '#0097A7',
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 5,
-    },
-
-    logo: {
-        width: 230,
-        height: 230,
-    },
-    subtitle: {
-        fontSize: 18,
-        color: '#4A6572',
-        marginBottom: 30,
-    },
-
-    // Estilos dos Botões (Mantidos)
-    button: {
-        backgroundColor: '#00BCD4',
-        paddingVertical: 16,
-        paddingHorizontal: 50,
-        borderRadius: 18,
-        width: '100%',
-        maxWidth: 300,
-        shadowColor: '#006064',
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 3,
-    },
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 19,
-        fontWeight: '500',
-        textAlign: 'center',
-        marginBottom: 4,
-    },
-    buttonSmall: {
-        color: '#E0F7FA',
-        fontSize: 12,
-        textAlign: 'center',
-        opacity: 0.9,
-    },
-
-    // Estilos da Publicidade (Mantidos)
+    
+    // Banner
     adContainer: {
         backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
-        borderTopColor: '#D0D0D0',
-        padding: 16,
-    },
-    adLabel: {
-        fontSize: 10,
-        color: '#9E9E9E',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    adContent: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
         padding: 12,
     },
-    adText: {
-        fontSize: 13,
-        color: '#616161',
-        textAlign: 'center',
-    },
-
-    // --- ESTILOS DO MODAL (Mantidos) ---
+    
+    // Modal (mantido)
     centeredView: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalView: {
         margin: 20,
         backgroundColor: 'white',
         borderRadius: 20,
-        padding: 35,
+        padding: 30,
         alignItems: 'center',
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
-        width: '80%',
+        width: '85%',
         maxWidth: 400,
     },
     modalTitle: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#00BCD4',
         marginBottom: 15,
+        textAlign: 'center',
     },
     modalBody: {
-        textAlign: 'justify', // Comando adicionado/alterado
-        fontSize: 16,
+        textAlign: 'justify',
+        fontSize: 15,
         color: '#4A6572',
         marginBottom: 20,
+        lineHeight: 22,
     },
     modalInfoGroup: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        paddingVertical: 4,
+        paddingVertical: 6,
     },
     modalInfoLabel: {
         fontSize: 14,
@@ -287,10 +416,9 @@ const styles = StyleSheet.create({
     modalButton: {
         backgroundColor: '#00BCD4',
         borderRadius: 10,
-        padding: 10,
-        marginTop: 25,
-        elevation: 2,
-        minWidth: 100,
+        padding: 12,
+        marginTop: 15,
+        minWidth: 120,
     },
     modalButtonText: {
         color: 'white',
