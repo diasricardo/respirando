@@ -1,12 +1,20 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { 
+  View, Text, TouchableOpacity, StyleSheet, 
+  Platform, StatusBar, Dimensions 
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Banner from './Banner';
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 export default function AdOfferScreen({ navigation }) {
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    // 🔥 CORREÇÃO: Adiciona edges=['bottom'] para considerar barra de gestos
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar backgroundColor="#E0F7FA" barStyle="dark-content" translucent={false} />
+      
       <LinearGradient colors={['#E0F7FA', '#B2EBF2']} style={styles.gradient}>
         <View style={styles.content}>
           <Text style={styles.title}>Respirando</Text>
@@ -42,13 +50,18 @@ export default function AdOfferScreen({ navigation }) {
           <Text style={styles.tip}>
             Sua colaboração nos ajuda a manter o app gratuito
           </Text>
+          
+          {/* 🔥 CORREÇÃO: Spacer para garantir que o banner não cubra conteúdo */}
+          <View style={styles.bottomSpacer} />
         </View>
 
-        {/* Espaço de Publicidade */}
-        <View style={styles.adContainer}>
-          <View style={styles.adContent}>
+        {/* 🔥 CORREÇÃO: Banner com wrapper e barra de segurança */}
+        <View style={styles.adWrapper}>
+          <View style={styles.adContainer}>
             <Banner />
           </View>
+          {/* Barra de segurança extra para Android */}
+          {Platform.OS === 'android' && <View style={styles.androidSafetyBar} />}
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -56,12 +69,14 @@ export default function AdOfferScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // 🔥 CORREÇÃO: SafeAreaView com estilo explícito
+  safeArea: {
     flex: 1,
     backgroundColor: '#E0F7FA',
   },
   gradient: {
     flex: 1,
+    justifyContent: 'space-between', // Garante espaço entre conteúdo e banner
   },
   content: {
     flex: 1,
@@ -144,22 +159,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
   },
+  
+  // 🔥 CORREÇÃO: Spacer dinâmico
+  bottomSpacer: {
+    height: Platform.OS === 'ios' ? 20 : 30,
+  },
+  
+  // 🔥 CORREÇÃO: Wrapper para o banner
+  adWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
+  
+  // 🔥 CORREÇÃO: Banner com padding bottom ajustado
   adContainer: {
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12, // Reduzido, a barra de segurança vai abaixo
   },
+  
+  // 🔥 CORREÇÃO: Barra de segurança extra para Android
+  androidSafetyBar: {
+    height: Platform.OS === 'android' ? 24 : 0,
+    backgroundColor: '#FFFFFF',
+  },
+  
+  // Estilos antigos (mantidos para compatibilidade)
   adLabel: {
     fontSize: 10,
     color: '#9E9E9E',
     textAlign: 'center',
     marginBottom: 8,
-  },
-  adContent: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    padding: 12,
   },
   adText: {
     fontSize: 13,

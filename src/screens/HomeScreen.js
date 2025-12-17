@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
+import { 
+    View, Text, TouchableOpacity, StyleSheet, 
+    Image, Modal, Platform, StatusBar, Dimensions 
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Banner from './Banner';
+
+// Helper para detectar dispositivo com notch/barra de gestos
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Ícone de Informação do App
 const InfoIcon = ({ onPress }) => (
@@ -45,8 +51,10 @@ export default function HomeScreen({ navigation }) {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            {/* Header Limpo - Ícone à direita apenas */}
+        <SafeAreaView style={styles.safeArea} edges={['top', 'right', 'bottom', 'left']}>
+            <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" translucent={false} />
+            
+            {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerTextContainer}>
                     <Text style={styles.headerTitle}>Respirando</Text>
@@ -58,9 +66,9 @@ export default function HomeScreen({ navigation }) {
                 }} />
             </View>
 
-            {/* Conteúdo Compacto - NÃO centralizado verticalmente */}
+            {/* Conteúdo Principal */}
             <View style={styles.content}>
-                {/* Logo - Mais para cima e menor */}
+                {/* Logo */}
                 <View style={styles.logoContainer}>
                     <View style={styles.circle}>
                         <Image
@@ -74,7 +82,7 @@ export default function HomeScreen({ navigation }) {
                     </Text>
                 </View>
 
-                {/* Técnicas - Mais compactas, sem centralização excessiva */}
+                {/* Técnicas */}
                 <View style={styles.techniquesContainer}>
                     {techniques.map((tech) => (
                         <TouchableOpacity 
@@ -111,7 +119,7 @@ export default function HomeScreen({ navigation }) {
                                 <TouchableOpacity 
                                     style={styles.techInfoBtn}
                                     onPress={(e) => {
-                                        e.stopPropagation(); // Evita clique no card
+                                        e.stopPropagation();
                                         showTechInfo(tech);
                                     }}
                                 >
@@ -126,12 +134,12 @@ export default function HomeScreen({ navigation }) {
                     ))}
                 </View>
 
-                {/* Espaço para o banner não sobrepor */}
-                <View style={styles.spacer} />
+                {/* Spacer dinâmico baseado na plataforma */}
+                <View style={styles.bottomSpacer} />
             </View>
 
-            {/* Banner */}
-            <View style={styles.adContainer}>
+            {/* BANNER CORRIGIDO */}
+            <View style={styles.bannerSection}>
                 <Banner />
             </View>
 
@@ -187,18 +195,18 @@ Use-o como uma âncora rápida para quebrar ciclos de pensamentos acelerados ou 
 }
 
 const styles = StyleSheet.create({
-    container: { 
-        flex: 1, 
-        backgroundColor: '#FFFFFF' 
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
     },
     
-    // Header - Mais clean
+    // Header
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingTop: 15,
+        paddingTop: Platform.OS === 'ios' ? 10 : 15,
         paddingBottom: 10,
         backgroundColor: '#FFFFFF',
     },
@@ -217,21 +225,21 @@ const styles = StyleSheet.create({
         opacity: 0.8,
     },
     
-    // Conteúdo - NÃO centralizado, começa mais para cima
+    // Conteúdo Principal
     content: {
         flex: 1,
         paddingHorizontal: 20,
-        paddingTop: 10, // Logo começa logo abaixo do header
+        paddingTop: 5,
     },
     
-    // Logo Container - Menor e mais para cima
+    // Logo Container
     logoContainer: {
         alignItems: 'center',
-        marginBottom: 25,
+        marginBottom: 20,
         marginTop: 5,
     },
     circle: {
-        width: 100, // MENOR
+        width: 100,
         height: 100,
         borderRadius: 50,
         backgroundColor: '#FFFFFF', 
@@ -242,7 +250,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     logo: {
-        width: 140, // MENOR
+        width: 140,
         height: 140,
     },
     welcomeText: {
@@ -251,15 +259,16 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     
-    // Técnicas - Layout mais compacto
+    // Técnicas
     techniquesContainer: {
         width: '100%',
+        flex: 1,
     },
     techCard: {
         backgroundColor: '#FFFFFF',
         borderRadius: 14,
         padding: 14,
-        marginBottom: 12, // MENOR espaçamento
+        marginBottom: 12,
         borderWidth: 1,
         borderColor: '#E0F7FA',
         flexDirection: 'row',
@@ -271,7 +280,7 @@ const styles = StyleSheet.create({
         marginRight: 12,
     },
     techTitle: {
-        fontSize: 18, // MENOR
+        fontSize: 18,
         fontWeight: '600',
         color: '#006064',
         marginBottom: 8,
@@ -285,7 +294,7 @@ const styles = StyleSheet.create({
         minWidth: 50,
     },
     timingLabel: {
-        fontSize: 11, // MENOR
+        fontSize: 11,
         color: '#4A6572',
         marginBottom: 2,
     },
@@ -301,7 +310,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 8,
     },
     
-    // Ações do Card - Mais compactas
+    // Ações do Card
     techActions: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -351,18 +360,26 @@ const styles = StyleSheet.create({
         color: '#00BCD4',
     },
     
-    // Spacer para o banner
-    spacer: {
-        height: 20,
+    // Spacer dinâmico
+    bottomSpacer: {
+        height: Platform.OS === 'ios' ? 20 : 30,
     },
     
-    // Banner
-    adContainer: {
+    // BANNER SECTION - CORRIGIDO
+    bannerSection: {
+        width: '100%',
         backgroundColor: '#FFFFFF',
-        padding: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+        paddingTop: 12,
+        paddingBottom: Platform.OS === 'android' ? 16 : 12,
+        paddingHorizontal: 12,
+        minHeight: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     
-    // Modal (mantido)
+    // Modal
     centeredView: {
         flex: 1,
         justifyContent: 'center',

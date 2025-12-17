@@ -3,6 +3,48 @@ import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import { InterstitialAd, TestIds } from 'react-native-google-mobile-ads';
 
+// const InterstitialAd = {
+//   createForAdRequest: (adUnitId) => {
+//     console.log('🔧 [MOCK] Criando InterstitialAd:', adUnitId);
+    
+//     return {
+//       addAdEventsListener: (callback) => {
+//         console.log('🔧 [MOCK] Registrando listeners');
+        
+//         // Simula carregamento após 1s
+//         setTimeout(() => {
+//           console.log('🔧 [MOCK] Evento: loaded');
+//           callback({ type: 'loaded' });
+//         }, 1000);
+        
+//         // Simula fechamento após 5s
+//         setTimeout(() => {
+//           console.log('🔧 [MOCK] Evento: closed');
+//           callback({ type: 'closed' });
+//         }, 5000);
+        
+//         // Retorna função de cleanup
+//         return () => {
+//           console.log('🔧 [MOCK] Removendo listeners');
+//         };
+//       },
+      
+//       load: () => {
+//         console.log('🔧 [MOCK] Carregando anúncio...');
+//       },
+      
+//       show: () => {
+//         console.log('🔧 [MOCK] Exibindo anúncio...');
+//         return Promise.resolve();
+//       },
+//     };
+//   }
+// };
+
+// const TestIds = {
+//   INTERSTITIAL: 'test-interstitial-mock'
+// };
+
 // Use APENAS test ID ou seu ID real
 const AD_UNIT_ID = __DEV__ 
   ? TestIds.INTERSTITIAL

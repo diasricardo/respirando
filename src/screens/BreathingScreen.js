@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { 
+  View, Text, StyleSheet, Animated, 
+  Platform, StatusBar, Dimensions 
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AudioManager from '../utils/AudioManager';
-import Banner from './Banner';
+
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function BreathingScreen({ navigation, route }) {
   const config = useMemo(() => {
@@ -180,7 +185,10 @@ export default function BreathingScreen({ navigation, route }) {
 
   // ========== RENDER ==========
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    // 🔥 CORREÇÃO: Adiciona edges=['bottom'] para considerar barra de gestos
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <StatusBar backgroundColor="#E0F7FA" barStyle="dark-content" translucent={false} />
+      
       <LinearGradient colors={['#E0F7FA', '#B2EBF2']} style={styles.gradient}>
         <View style={styles.content}>
           <Text style={styles.title}>Respirando</Text>
@@ -214,22 +222,20 @@ export default function BreathingScreen({ navigation, route }) {
             </View>
           )}
         </View>
-
-        <View style={styles.adContainer}>
-          <Banner />
-        </View>
       </LinearGradient>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#E0F7FA' 
+  // 🔥 CORREÇÃO: SafeAreaView com estilo explícito
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#E0F7FA',
   },
   gradient: { 
-    flex: 1 
+    flex: 1,
+    justifyContent: 'space-between', // Garante que o banner fique no fundo
   },
   content: {
     flex: 1,
@@ -298,12 +304,30 @@ const styles = StyleSheet.create({
     color: '#546E7A',
     marginTop: 90,
   },
+  
+  // 🔥 CORREÇÃO: Wrapper para o banner
+  adWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
+  
+  // 🔥 CORREÇÃO: Banner com padding bottom ajustado
   adContainer: {
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12, // Reduzido, a barra de segurança vai abaixo
   },
+  
+  // 🔥 CORREÇÃO: Barra de segurança extra para Android
+  androidSafetyBar: {
+    height: Platform.OS === 'android' ? 24 : 0,
+    backgroundColor: '#FFFFFF',
+  },
+  
+  // Estilos antigos (mantidos para compatibilidade)
   adLabel: {
     fontSize: 10,
     color: '#9E9E9E',
@@ -321,4 +345,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
