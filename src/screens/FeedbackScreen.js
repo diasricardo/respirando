@@ -2,52 +2,58 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import Banner from './Banner';
 
-export default function AdOfferScreen({ navigation }) {
+export default function FeedbackScreen({ navigation }) {
+  const handleFeedback = (isCalm) => {
+    if (isCalm) {
+      navigation.navigate('AdOfferScreen');
+    } else {
+      navigation.navigate('Home');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <LinearGradient colors={['#E0F7FA', '#B2EBF2']} style={styles.gradient}>
         <View style={styles.content}>
           <Text style={styles.title}>Respirando</Text>
 
-          <View style={styles.iconContainer}>
-            <Text style={styles.icon}>💙</Text>
+          <View style={styles.checkmark}>
+            <Text style={styles.checkmarkText}>✓</Text>
           </View>
 
-          <Text style={styles.heading}>Que ótimo!</Text>
-
-          <Text style={styles.message}>
-            Gostaria de ajudar no desenvolvimento do projeto assistindo a uma publicidade de 30 segundos?
+          <Text style={styles.question}>
+            Você se sente mais{'\n'}calmo(a) agora?
           </Text>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.buttonYes}
-              onPress={() => navigation.navigate('Ad')}
+              onPress={() => handleFeedback(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonYesText}>Sim, assistir</Text>
+              <Text style={styles.buttonYesText}>Sim</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.buttonNo}
-              onPress={() => navigation.navigate('Home')}
+              onPress={() => handleFeedback(false)}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonNoText}>Não, obrigado</Text>
+              <Text style={styles.buttonNoText}>Não</Text>
             </TouchableOpacity>
           </View>
 
           <Text style={styles.tip}>
-            Sua colaboração nos ajuda a manter o app gratuito
+            Pratique regularmente para melhores resultados
           </Text>
         </View>
 
         {/* Espaço de Publicidade */}
         <View style={styles.adContainer}>
-          <Text style={styles.adLabel}>Publicidade</Text>
           <View style={styles.adContent}>
-            <Text style={styles.adText}>Mantenha sua mente saudável - Saiba mais</Text>
+            <Banner />
           </View>
         </View>
       </LinearGradient>
@@ -75,31 +81,26 @@ const styles = StyleSheet.create({
     color: '#00BCD4',
     marginBottom: 40,
   },
-  iconContainer: {
+  checkmark: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(38, 198, 218, 0.2)',
+    backgroundColor: '#26C6DA',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 40,
   },
-  icon: {
+  checkmarkText: {
     fontSize: 32,
+    color: '#FFFFFF',
   },
-  heading: {
-    fontSize: 28,
+  question: {
+    fontSize: 24,
     fontWeight: '300',
     color: '#37474F',
-    marginBottom: 16,
-  },
-  message: {
-    fontSize: 16,
-    color: '#546E7A',
     textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-    maxWidth: 280,
+    marginBottom: 40,
+    lineHeight: 32,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   },
   buttonYesText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '300',
     textAlign: 'center',
   },
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   },
   buttonNoText: {
     color: '#00838F',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '300',
     textAlign: 'center',
   },
